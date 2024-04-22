@@ -27,7 +27,7 @@ export class User {
   blogs: Blog[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  memberSince: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
