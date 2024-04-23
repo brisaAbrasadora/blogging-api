@@ -1,14 +1,14 @@
 import { DynamicModule } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Environment } from 'src/common/enum';
 import { DataSourceOptions } from 'typeorm';
+
+import { Environment } from 'src/common/enum';
 
 export const DatabaseProvider: DynamicModule = TypeOrmModule.forRootAsync({
   inject: [ConfigService],
   async useFactory(config: ConfigService) {
     const IsDevelopmentEnv = config.get('NODE_ENV') !== Environment.PRODUCTION;
-
     const dbConfig = {
       type: 'postgres',
       host: config.get('DB_HOST'),
