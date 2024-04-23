@@ -15,7 +15,7 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t brisabrasadora/blogging-api:latest
+          docker build -t brisabrasadora/blogging-api:latest .
       - name: Publish image
         run: |
           docker login -u brisabrasadora -p ${{ secrets.DOCKER_HUB_TOKEN }}
