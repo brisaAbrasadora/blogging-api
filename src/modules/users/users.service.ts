@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { User } from './entities';
 import { UsersResponse } from './interfaces/users.response';
+import { RegisterUserDto } from './dto';
 
 @Injectable()
 export class UsersService {
@@ -23,5 +24,18 @@ export class UsersService {
         id: id,
       },
     });
+  }
+
+  async registerUser({
+    username,
+    email,
+    password,
+  }: RegisterUserDto): Promise<User> {
+    const user: User = this.userRepository.create({
+      username,
+      email,
+      password,
+    });
+    return this.userRepository.save(user);
   }
 }
