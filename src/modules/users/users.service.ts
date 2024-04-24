@@ -14,6 +14,7 @@ export class UsersService {
 
   async getUsers(): Promise<User[]> {
     return await this.userRepository.find({
+      order: { id: 'ASC' },
       relations: ['blogs'],
     });
   }
