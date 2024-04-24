@@ -1,4 +1,10 @@
-import { Controller, Get, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities';
 import { UserResponseInterceptor } from './interceptors/user-response.interceptor';
@@ -13,8 +19,15 @@ export class UsersController {
     return this.userService.getUsers();
   }
 
-  @Get('/test')
-  getUsersTest(): string {
-    return 'gotcha';
+  @UseInterceptors(UserResponseInterceptor)
+  @Get(':id')
+  async getUser(@Param('id') id: number): Promise<User> {
+    const user: User = await this.userService.getUser(id);
+
+    if (!user) {
+      throw new NotFoundException('Resource not found');
+    }
+
+    return user;
   }
 }

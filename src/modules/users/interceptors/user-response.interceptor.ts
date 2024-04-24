@@ -17,7 +17,9 @@ export class UserResponseInterceptor implements NestInterceptor {
             users: data,
           };
         } else {
-          console.log('Unexpected behaviour');
+          return {
+            user: data,
+          };
         }
       }),
     );
