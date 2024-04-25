@@ -5,11 +5,13 @@ import { DeleteResult, Repository } from 'typeorm';
 import { User } from './entities';
 import { UsersResponse } from './interfaces/users.response';
 import { RegisterUserDto } from './dto';
+import { Blog } from '../blogs/entities/blog.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Blog) private readonly blogRepository: Repository<Blog>,
   ) {}
 
   async getUsers(): Promise<User[]> {
@@ -24,6 +26,7 @@ export class UsersService {
       where: {
         id: id,
       },
+      relations: ['blogs'],
     });
   }
 
@@ -45,10 +48,15 @@ export class UsersService {
       where: {
         id: id,
       },
+      relations: ['blogs'],
     });
 
     if (!user) {
       throw new NotFoundException('Resource not found');
+    }
+
+    if (user.blogs.length) {
+      user.blogs.forEach((blog) => this.blogRepository.remove(blog));
     }
 
     this.userRepository.remove(user);
