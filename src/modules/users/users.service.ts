@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 
 import { User } from './entities';
 import { UsersResponse } from './interfaces/users.response';
@@ -38,5 +38,19 @@ export class UsersService {
       password,
     });
     return this.userRepository.save(user);
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user: User = await this.userRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Resource not found');
+    }
+
+    this.userRepository.remove(user);
   }
 }

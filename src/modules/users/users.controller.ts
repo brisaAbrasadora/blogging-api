@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -11,6 +12,7 @@ import { UsersService } from './users.service';
 import { User } from './entities';
 import { UserResponseInterceptor } from './interceptors/user-response.interceptor';
 import { RegisterUserDto } from './dto';
+import { DeleteResult } from 'typeorm';
 
 @Controller('users')
 export class UsersController {
@@ -34,8 +36,14 @@ export class UsersController {
     return user;
   }
 
+  @UseInterceptors(UserResponseInterceptor)
   @Post()
   registerUser(@Body() user: RegisterUserDto): Promise<User> {
     return this.userService.registerUser(user);
+  }
+
+  @Delete(':id')
+  async deleteUser(@Param('id') id: number): Promise<void> {
+    return this.userService.deleteUser(id);
   }
 }
