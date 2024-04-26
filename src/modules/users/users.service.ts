@@ -61,4 +61,12 @@ export class UsersService {
 
     this.userRepository.remove(user);
   }
+
+  async getUsersEmail(): Promise<User[]> {
+    return await this.userRepository.find({ select: { email: true } });
+  }
+
+  async getUsersUsername(): Promise<User[]> {
+    return await this.userRepository.find({ select: { username: true } });
+  }
 }
