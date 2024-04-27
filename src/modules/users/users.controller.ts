@@ -21,6 +21,7 @@ import {
   UserResponseInterceptor,
 } from './interceptors/';
 import { QueryFailedError } from 'typeorm';
+import { PostgresErrors } from 'src/database/enum';
 
 @Controller('users')
 export class UsersController {
@@ -86,7 +87,6 @@ export class UsersController {
         throw new UnprocessableEntityException('Email format is not legal');
       }
 
-      console.log(user.password.match(atLeastOneNumber));
       if (!user.password.match(atLeastOneNumber)) {
         throw new UnprocessableEntityException(
           'Password must have at least a number',
@@ -123,7 +123,7 @@ export class UsersController {
         );
       }
 
-      const hash = bcrypt.hashSync(user.password, 10);
+      const hash = await bcrypt.hash(user.password, 10);
 
       const newUser: RegisterUserDto = {
         username: user.username,
@@ -133,7 +133,7 @@ export class UsersController {
 
       return await this.userService.registerUser(newUser);
     } catch (e) {
-      if (e instanceof QueryFailedError) {
+      if (e?.code === PostgresErrors.UNIQUE_VIOLATION) {
         const detail: string = e.driverError['detail'];
         const column: string = detail.substring(
           detail.indexOf('(') + 1,
