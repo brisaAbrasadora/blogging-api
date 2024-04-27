@@ -83,6 +83,13 @@ export class UsersController {
           'Username must not have whitespaces, and only contain alphanumeric characters, dash and underscores',
         );
       }
+
+      if (
+        (await this.getUsersUsernames()).includes(user.username.toLowerCase())
+      ) {
+        throw new ConflictException('User with that username already exists');
+      }
+
       if (!user.email.match(emailFormat)) {
         throw new UnprocessableEntityException('Email format is not legal');
       }
@@ -133,6 +140,7 @@ export class UsersController {
 
       return await this.userService.registerUser(newUser);
     } catch (e) {
+      console.log(e);
       if (e?.code === PostgresErrors.UNIQUE_VIOLATION) {
         const detail: string = e.driverError['detail'];
         const column: string = detail.substring(

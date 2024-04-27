@@ -16,7 +16,7 @@ export class Blog {
   @Column()
   title: string;
 
-  @ManyToOne((type) => User, (user) => user.blogs, { cascade: true })
+  @ManyToOne(() => User, (user) => user.blogs, { cascade: true })
   @JoinColumn({ name: 'creator_id' })
   creator: User;
 }

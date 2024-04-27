@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { User } from './entities';
-import { UsersResponse } from './interfaces/users.response';
 import { RegisterUserDto } from './dto';
 import { Blog } from '../blogs/entities/blog.entity';
 
@@ -28,6 +27,13 @@ export class UsersService {
       },
       relations: ['blogs'],
     });
+  }
+
+  async getUserByUsername(username: string): Promise<User> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username ILIKE :username', { username: username })
+      .getOne();
   }
 
   async registerUser({
