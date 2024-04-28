@@ -9,6 +9,9 @@ import {
   Post,
   UnprocessableEntityException,
   UseInterceptors,
+  Request,
+  UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 
 import * as bcrypt from 'bcrypt';
@@ -22,6 +25,7 @@ import {
 } from './interceptors/';
 import { QueryFailedError } from 'typeorm';
 import { PostgresErrors } from 'src/database/enum';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -53,16 +57,27 @@ export class UsersController {
     return usernames;
   }
 
+  @UseGuards(AuthGuard)
   @UseInterceptors(UserResponseInterceptor)
   @Get(':id')
-  async getUser(@Param('id') id: number): Promise<User> {
-    const user: User = await this.userService.getUser(id);
+  async getUser(
+    @Request() req,
+    @Param('id') id?: number | string,
+  ): Promise<User> {
+    if (!isNaN(+id)) {
+      const user: User = await this.userService.getUser(+id);
 
-    if (!user) {
-      throw new NotFoundException('Resource not found');
+      if (!user) {
+        throw new NotFoundException('Resource not found');
+      }
+
+      return user;
+    } else if (id === 'me') {
+      console.log('flag');
+      return this.userService.getUser(req.user.sub);
+    } else {
+      throw new BadRequestException('');
     }
-
-    return user;
   }
 
   @UseInterceptors(UserResponseInterceptor)
