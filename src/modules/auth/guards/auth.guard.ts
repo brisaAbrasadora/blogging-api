@@ -9,7 +9,6 @@ import { JwtService } from '@nestjs/jwt';
 
 import { env } from 'node:process';
 import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
-import { User } from 'src/modules/users/entities';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -24,7 +23,7 @@ export class AuthGuard implements CanActivate {
       context.getClass(),
     ]);
     if (isPublic) {
-      console.log('flag');
+      console.log('[AUTH GUARD] -- canActivate', new Date(), ' is Public');
       return true;
     }
 
@@ -32,7 +31,7 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      console.log('no token');
+      console.log('[AUTH GUARD] -- canActivate', new Date(), 'No token');
       throw new UnauthorizedException();
     }
     try {
@@ -42,14 +41,22 @@ export class AuthGuard implements CanActivate {
 
       request['user'] = payload;
     } catch {
-      console.log('bad flag');
+      console.log(
+        '[AUTH GUARD] -- canActivate',
+        new Date(),
+        ' Token is not valid',
+      );
       throw new UnauthorizedException('Token is not valid');
     }
     return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {
-    console.log(request.headers['authorization']);
+    console.log(
+      '[AUTH GUARD] -- extractTokenFromHeader',
+      new Date(),
+      request.headers['authorization'],
+    );
     const [type, token] = request.headers['authorization']?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }

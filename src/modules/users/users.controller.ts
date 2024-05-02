@@ -65,7 +65,7 @@ export class UsersController {
 
       return user;
     } else if (id === 'me') {
-      console.log('flag');
+      console.log('[USERS CONTROLLER] -- getUser', new Date(), 'id === me');
       return this.userService.getUser(req.user.sub);
     } else {
       throw new BadRequestException('');

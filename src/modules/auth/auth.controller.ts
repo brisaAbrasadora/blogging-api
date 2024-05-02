@@ -105,7 +105,7 @@ export class AuthController {
 
       return await this.userService.registerUser(newUser);
     } catch (e) {
-      console.log(e);
+      console.log('[AUTH CONTROLLER] -- register', new Date(), 'error: ', e);
       if (e?.code === PostgresErrors.UNIQUE_VIOLATION) {
         const detail: string = e.driverError['detail'];
         const column: string = detail.substring(
