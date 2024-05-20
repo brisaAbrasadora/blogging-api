@@ -2,9 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
   PrimaryGeneratedColumn,
-  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -24,7 +24,8 @@ export class User {
   @Column({ nullable: false })
   password: string;
 
-  @OneToMany((type) => Blog, (blog) => blog.creator)
+  @OneToMany(() => Blog, (blog) => blog.creator)
+  @JoinColumn()
   blogs: Blog[];
 
   @CreateDateColumn()

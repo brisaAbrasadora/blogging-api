@@ -1,7 +1,7 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -16,7 +16,12 @@ export class Blog {
   @Column()
   title: string;
 
-  @ManyToOne(() => User, (user) => user.blogs, { cascade: true })
-  @JoinColumn({ name: 'creator_id' })
+  @Column({ nullable: true })
+  description: string;
+
+  @ManyToOne(() => User, (user) => user.blogs)
   creator: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

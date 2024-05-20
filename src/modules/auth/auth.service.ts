@@ -1,14 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from '../users/users.service';
-import { LoginUserDto } from './dto';
-import { JwtService } from '@nestjs/jwt';
 import { AccessToken } from './interfaces';
+import { LoginUserDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -17,17 +13,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(username: string, pass: string): Promise<AccessToken> {
-    const user = await this.usersService.getUserByUsername(username);
+  async signIn(data: LoginUserDto): Promise<AccessToken> {
+    const user = await this.usersService.getUserByUsername(data.username);
 
-    if (!user) {
-      throw new NotFoundException('Source not found');
-    }
-
-    if (!(await bcrypt.compare(pass, user.password))) {
+    if (!(await bcrypt.compare(data.password, user.password))) {
       throw new UnauthorizedException('Wrong credentials');
     }
-    const payload = { sub: user.id, username: user.username };
+    const payload = { id: user.id, username: user.username };
 
     return {
       accessToken: await this.jwtService.signAsync(payload),

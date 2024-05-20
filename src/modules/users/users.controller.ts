@@ -7,6 +7,9 @@ import {
   UseInterceptors,
   Request,
   BadRequestException,
+  UnauthorizedException,
+  UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { UsersService } from './users.service';
@@ -17,10 +20,17 @@ import {
   UserResponseInterceptor,
 } from './interceptors/';
 import { Public } from 'src/common/decorators';
+import { BlogsService } from '../blogs/blogs.service';
+import { IdIsIntegerGuard } from 'src/common/guards/id-is-integer.guard';
+import { IdIsNumberGuard } from 'src/common/guards/id-is-number.guard';
+import { IdIsGreaterThanZeroGuard } from 'src/common/guards/id-is-greater-zero.guard';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly userService: UsersService) {}
+  constructor(
+    private readonly userService: UsersService,
+    private readonly blogService: BlogsService,
+  ) {}
 
   @UseInterceptors(UserResponseInterceptor)
   @Get()
@@ -32,25 +42,18 @@ export class UsersController {
   @UseInterceptors(EmailResponseInterceptor)
   @Get('emails')
   async getUsersEmail(): Promise<string[]> {
-    const users: User[] = await this.userService.getUsersEmail();
-
-    const emails = users.map((u: User) => u.email.toLowerCase());
-
-    return emails;
+    return await this.userService.getUsersEmail();
   }
 
   @Public()
   @UseInterceptors(UsernameResponseInterceptor)
   @Get('usernames')
   async getUsersUsernames(): Promise<string[]> {
-    const users: User[] = await this.userService.getUsersUsername();
-
-    const usernames = users.map((u: User) => u.username.toLowerCase());
-
-    return usernames;
+    return await this.userService.getUsersUsername();
   }
 
   @UseInterceptors(UserResponseInterceptor)
+  @UseGuards(IdIsIntegerGuard, IdIsGreaterThanZeroGuard)
   @Get(':id')
   async getUser(
     @Request() req,
@@ -66,14 +69,18 @@ export class UsersController {
       return user;
     } else if (id === 'me') {
       console.log('[USERS CONTROLLER] -- getUser', new Date(), 'id === me');
-      return this.userService.getUser(req.user.sub);
+      return this.userService.getUser(req.user.id);
     } else {
-      throw new BadRequestException('');
+      throw new BadRequestException('ID must be a number');
     }
   }
 
+  @UseGuards(IdIsGreaterThanZeroGuard)
   @Delete(':id')
-  async deleteUser(@Param('id') id: number): Promise<void> {
-    return this.userService.deleteUser(id);
+  async deleteUser(
+    @Request() req,
+    @Param('id', new ParseIntPipe()) id: string,
+  ): Promise<void> {
+    return this.userService.deleteUser(+id, req.user.id);
   }
 }

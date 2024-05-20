@@ -8,11 +8,20 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
+  UseInterceptors,
+  Request,
+  ParseIntPipe,
+  ConflictException,
 } from '@nestjs/common';
 
 import { CreateBlogDto, UpdateBlogDto, filterQuery } from './dto';
 import { BlogsService } from './blogs.service';
 import { Blog } from './entities/blog.entity';
+import { BlogTitleResponseInterceptor } from './interceptors/blog-title-response.interceptor';
+import { IdIsNumberGuard } from 'src/common/guards/id-is-number.guard';
+import { IdIsIntegerGuard } from 'src/common/guards/id-is-integer.guard';
+import { IdIsGreaterThanZeroGuard } from 'src/common/guards/id-is-greater-zero.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -24,9 +33,21 @@ export class BlogsController {
     return this.blogService.getBlogs();
   }
 
+  @UseInterceptors(BlogTitleResponseInterceptor)
+  @UseGuards(IdIsGreaterThanZeroGuard)
+  @Get('/titles/:id')
+  async getBlogsTitlesByUser(
+    @Param('id', new ParseIntPipe()) id: string,
+  ): Promise<string[]> {
+    const blogsTitles = await this.blogService.getBlogTitlesByUser(+id);
+
+    return blogsTitles;
+  }
+
+  @UseGuards(IdIsGreaterThanZeroGuard)
   @Get(':id')
-  async getBlog(@Param('id') id: number): Promise<Blog> {
-    const blog: Blog = await this.blogService.getBlog(id);
+  async getBlog(@Param('id', new ParseIntPipe()) id: string): Promise<Blog> {
+    const blog: Blog = await this.blogService.getBlog(+id);
 
     if (!blog) {
       throw new NotFoundException('Resource not found');
@@ -37,20 +58,33 @@ export class BlogsController {
 
   @Post()
   // @HttpCode(HttpStatus.NO_CONTENT) //Esto hace que no se devuelva nada
-  createBlog(@Body() blog: CreateBlogDto): Promise<Blog> {
-    return this.blogService.createBlog(blog);
+  async createBlog(@Request() req, @Body() blog: CreateBlogDto): Promise<Blog> {
+    const userBlogs = await this.blogService.getBlogTitlesByUser(
+      blog.creator.id,
+    );
+
+    if (userBlogs.includes(blog.title.toLowerCase())) {
+      throw new ConflictException('That blog title is already in use');
+    }
+
+    return this.blogService.createBlog(blog, req.user.id);
   }
 
+  @UseGuards(IdIsGreaterThanZeroGuard)
   @Patch(':id')
   updateBlog(
-    @Param('id') id: number,
+    @Param('id', new ParseIntPipe()) id: string,
     @Body() blog: UpdateBlogDto,
   ): Promise<Blog> {
-    return this.blogService.updateBlog(id, blog);
+    return this.blogService.updateBlog(+id, blog);
   }
 
+  @UseGuards(IdIsGreaterThanZeroGuard)
   @Delete(':id')
-  deleteBlog(@Param('id') id: number): Promise<void> {
-    return this.blogService.deleteBlog(id);
+  deleteBlog(
+    @Request() req,
+    @Param('id', new ParseIntPipe()) id: string,
+  ): Promise<void> {
+    return this.blogService.deleteBlog(+id, req.user.id);
   }
 }

@@ -7,8 +7,6 @@ import {
   HttpStatus,
   Post,
   Request,
-  UnprocessableEntityException,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -29,70 +27,26 @@ export class AuthController {
     private userService: UsersService,
   ) {}
 
+  // TODO I think the UNIQUE CONSTRAINT is not necessary here at the catch
   @UseInterceptors(UserResponseInterceptor)
   @Public()
   @Post('register')
   async register(@Body() user: RegisterUserDto): Promise<User> {
     try {
-      const usernameFormat: RegExp = /^[a-zA-Z0-9_]+$/;
-      const emailFormat: RegExp =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_\`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-      const atLeastOneNumber: RegExp = /^(?=.*\d).*$/;
-      const atLeastOneUppercase: RegExp = /^(?=.*[A-Z]).*$/;
-      const atLeastOneLowercase: RegExp = /^(?=.*[a-z]).*$/;
-      const atLeastOneSpecialChar: RegExp = /^(?=.*[^\w\d\s:]).*$/;
-      const whitespaces: RegExp = /^(?!\s)(?!.*\s$)(?!.*\s\s)[^\s]+$/;
-
-      if (!user.username.match(usernameFormat)) {
-        throw new UnprocessableEntityException(
-          'Username must not have whitespaces, and only contain alphanumeric characters, dash and underscores',
-        );
-      }
-
       if (
-        (await this.getUsersUsernames()).includes(user.username.toLowerCase())
+        (await this.userService.getUsersUsername()).includes(
+          user.username.toLowerCase(),
+        )
       ) {
         throw new ConflictException('User with that username already exists');
       }
 
-      if (!user.email.match(emailFormat)) {
-        throw new UnprocessableEntityException('Email format is not legal');
-      }
-
-      if (!user.password.match(atLeastOneNumber)) {
-        throw new UnprocessableEntityException(
-          'Password must have at least a number',
-        );
-      }
-
-      if (!user.password.match(atLeastOneLowercase)) {
-        throw new UnprocessableEntityException(
-          'Password must have at least a lowercase',
-        );
-      }
-
-      if (!user.password.match(atLeastOneUppercase)) {
-        throw new UnprocessableEntityException(
-          'Password must have at least an uppercase',
-        );
-      }
-
-      if (!user.password.match(atLeastOneSpecialChar)) {
-        throw new UnprocessableEntityException(
-          'Password must have at least an special char',
-        );
-      }
-
-      if (!user.password.match(whitespaces)) {
-        throw new UnprocessableEntityException(
-          'Password must not have whitespaced',
-        );
-      }
-
-      if (user.password.length < 8 || user.password.length > 18) {
-        throw new UnprocessableEntityException(
-          'Password must contain more than 7 and less than 19 characters',
-        );
+      if (
+        (await this.userService.getUsersEmail()).includes(
+          user.email.toLowerCase(),
+        )
+      ) {
+        throw new ConflictException('User with that email already exists');
       }
 
       const hash = await bcrypt.hash(user.password, 10);
@@ -121,8 +75,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('login')
-  signIn(@Body() { username, password }: LoginUserDto) {
-    return this.authService.signIn(username, password);
+  signIn(@Body() data: LoginUserDto) {
+    return this.authService.signIn(data);
   }
 
   // @UseGuards(AuthGuard)
@@ -137,13 +91,5 @@ export class AuthController {
       id: req.user.id,
       username: req.user.username,
     };
-  }
-
-  private async getUsersUsernames(): Promise<string[]> {
-    const users: User[] = await this.userService.getUsersUsername();
-
-    const usernames = users.map((u: User) => u.username.toLowerCase());
-
-    return usernames;
   }
 }

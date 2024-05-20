@@ -5,7 +5,7 @@ import { BlogsModule } from './modules/blogs/blogs.module';
 import { UsersModule } from './modules/users/users.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { ProfilesModule } from './modules/profiles/profiles.module';
+import { EntriesModule } from './modules/entries/entries.module';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import { ProfilesModule } from './modules/profiles/profiles.module';
     BlogsModule,
     UsersModule,
     AuthModule,
-    ProfilesModule,
+    EntriesModule,
   ],
 })
 export class AppModule {
