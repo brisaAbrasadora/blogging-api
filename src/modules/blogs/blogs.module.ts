@@ -9,11 +9,13 @@ import { Entry } from '../entries/entities/entry.entity';
 import { UsersService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
 import { UsersServiceInterface } from '../users/interfaces/users-service.interface';
+import { EntriesModule } from '../entries/entries.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Blog, User]),
+    TypeOrmModule.forFeature([Blog, User, Entry]),
     forwardRef(() => UsersModule),
+    forwardRef(() => EntriesModule),
   ],
   controllers: [BlogsController],
   providers: [BlogsService],

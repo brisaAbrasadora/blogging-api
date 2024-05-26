@@ -7,7 +7,6 @@ import {
   UseInterceptors,
   Request,
   BadRequestException,
-  UnauthorizedException,
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -22,7 +21,6 @@ import {
 import { Public } from 'src/common/decorators';
 import { BlogsService } from '../blogs/blogs.service';
 import { IdIsIntegerGuard } from 'src/common/guards/id-is-integer.guard';
-import { IdIsNumberGuard } from 'src/common/guards/id-is-number.guard';
 import { IdIsGreaterThanZeroGuard } from 'src/common/guards/id-is-greater-zero.guard';
 
 @Controller('users')

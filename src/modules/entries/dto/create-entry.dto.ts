@@ -1,20 +1,20 @@
 import {
   IsNotEmpty,
+  IsNumber,
   IsObject,
   IsString,
   Length,
   Matches,
   MaxLength,
 } from 'class-validator';
+import { Blog } from 'src/modules/blogs/entities/blog.entity';
 
-import { User } from 'src/modules/users/entities';
-
-export class CreateBlogDto {
+export class CreateEntryDto {
   @IsString()
   @Length(5, 20)
   @Matches(/^(?!\s)([A-Za-z0-9]+(\s[A-Za-z0-9]+)*)(?!\s)$/g, {
     message:
-      "A blog's title can have alphanumeric characters and one space in between each character",
+      "An entry's title can have alphanumeric characters and one space in between each character",
   })
   @IsNotEmpty()
   readonly title: string;
@@ -22,9 +22,11 @@ export class CreateBlogDto {
   // TODO dont allow spaces
   @IsString()
   @MaxLength(70)
-  readonly description: string;
+  readonly body: string;
 
   @IsObject()
   @IsNotEmpty()
-  readonly creator: Partial<User>;
+  readonly origin: Partial<Blog>;
+  // @IsNumber()
+  // readonly blogId: number;
 }

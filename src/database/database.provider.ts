@@ -19,6 +19,7 @@ export const DatabaseProvider: DynamicModule = TypeOrmModule.forRootAsync({
       autoLoadEntities: true,
       synchronize: IsDevelopmentEnv,
       logging: config.get('DB_LOGGING'),
+      useUTC: true,
     } as DataSourceOptions;
 
     return dbConfig;

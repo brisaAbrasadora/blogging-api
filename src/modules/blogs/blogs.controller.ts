@@ -13,6 +13,7 @@ import {
   Request,
   ParseIntPipe,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { CreateBlogDto, UpdateBlogDto, filterQuery } from './dto';
@@ -22,6 +23,7 @@ import { BlogTitleResponseInterceptor } from './interceptors/blog-title-response
 import { IdIsNumberGuard } from 'src/common/guards/id-is-number.guard';
 import { IdIsIntegerGuard } from 'src/common/guards/id-is-integer.guard';
 import { IdIsGreaterThanZeroGuard } from 'src/common/guards/id-is-greater-zero.guard';
+import { BlogResponseInterceptor } from './interceptors/blog-response.interceptor';
 
 @Controller('blogs')
 export class BlogsController {
@@ -44,6 +46,22 @@ export class BlogsController {
     return blogsTitles;
   }
 
+  @UseInterceptors(BlogResponseInterceptor)
+  @Get(':id/all')
+  async getBlogsByUser(
+    @Request() req,
+    @Param('id') id?: number | string,
+  ): Promise<Blog[]> {
+    if (!isNaN(+id) && +id > 0) {
+      return await this.blogService.getBlogsByUser(+id);
+    } else if (id === 'me') {
+      return this.blogService.getBlogsByUser(req.user.id);
+    } else {
+      throw new BadRequestException('ID must be a number');
+    }
+  }
+
+  @UseInterceptors(BlogResponseInterceptor)
   @UseGuards(IdIsGreaterThanZeroGuard)
   @Get(':id')
   async getBlog(@Param('id', new ParseIntPipe()) id: string): Promise<Blog> {

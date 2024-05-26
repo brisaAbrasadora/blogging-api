@@ -10,16 +10,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Blog } from './entities/blog.entity';
 import { CreateBlogDto, UpdateBlogDto } from './dto';
-import { User } from '../users/entities';
 import { UsersService } from '../users/users.service';
-import { UsersServiceInterface } from '../users/interfaces/users-service.interface';
-import { BlogsServiceInterface } from './interfaces/blogs-service.interface';
+import { EntryService } from '../entries/entry.service';
 
 @Injectable()
 export class BlogsService {
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => EntryService))
+    private readonly entryService: EntryService,
     @InjectRepository(Blog) private readonly blogRepository: Repository<Blog>,
   ) {}
 
@@ -39,7 +39,7 @@ export class BlogsService {
       where: {
         id: id,
       },
-      relations: ['creator'],
+      relations: ['creator', 'entries'],
     });
 
     if (!blog) {
@@ -62,7 +62,8 @@ export class BlogsService {
     await this.usersService.getUser(id);
 
     return await this.blogRepository.find({
-      select: { creator: { id: true, username: true } },
+      select: { creator: { id: true, username: true }, entries: true },
+      relations: ['entries'],
       where: { creator: { id: id } },
     });
   }
@@ -98,10 +99,14 @@ export class BlogsService {
   }
 
   // TODO what does preload do? + review this
-  async updateBlog(id: number, { title }: UpdateBlogDto): Promise<Blog> {
+  async updateBlog(
+    id: number,
+    { title, description }: UpdateBlogDto,
+  ): Promise<Blog> {
     const blog: Blog = await this.blogRepository.preload({
       id,
       title,
+      description,
     });
 
     return this.blogRepository.save(blog);
@@ -121,7 +126,7 @@ export class BlogsService {
       where: {
         id: id,
       },
-      relations: ['creator'],
+      relations: ['creator', 'entries'],
     });
 
     if (blog.creator.id !== currentUserId) {
@@ -132,6 +137,10 @@ export class BlogsService {
 
     if (!blog) {
       throw new NotFoundException('Resource not found');
+    }
+
+    if (blog.entries.length) {
+      await this.entryService.deleteAllEntriesByBlog(id);
     }
 
     this.blogRepository.remove(blog);

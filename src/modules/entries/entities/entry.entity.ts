@@ -1,10 +1,12 @@
 import { Blog } from 'src/modules/blogs/entities/blog.entity';
 import {
+  Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
@@ -12,10 +14,19 @@ export class Entry {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @PrimaryColumn()
-  blogId: number;
+  @Column()
+  title: string;
 
-  @ManyToOne(() => Blog)
+  @Column()
+  body: string;
+
+  @ManyToOne(() => Blog, (entry) => entry.entries)
   @JoinColumn()
-  blog: Blog;
+  origin: Blog;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
